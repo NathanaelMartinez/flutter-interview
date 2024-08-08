@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:interview_flutter/main.dart';
 import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
+import 'package:interview_flutter/util/weather_icons.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:sqflite/sqflite.dart';

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
+import 'package:interview_flutter/util/weather_icons.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -483,23 +484,5 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
-  }
-}
-
-class WeatherForemostIcon extends StatelessWidget {
-  const WeatherForemostIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Image.asset('assets/icons/logo.png', scale: 2);
-  }
-}
-
-class WeatherForemostIconNotFound extends StatelessWidget {
-  const WeatherForemostIconNotFound({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Image.asset('assets/icons/logosearch.png', scale: 1.7);
   }
 }
