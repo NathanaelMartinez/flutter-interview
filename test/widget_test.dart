@@ -1,28 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interview_flutter/main.dart';
+import 'package:interview_flutter/city_service.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
+import 'widget_test.mocks.dart';
+
+@GenerateMocks([CityService])
 void main() {
+  final mockCityService = MockCityService();
+
+  when(mockCityService.fetchCities('Mi')).thenAnswer(
+    (_) async => ['Miami', 'Milwaukee', 'Minneapolis', 'Miramar'],
+  );
+
+  Widget createTestWidget() {
+    return MaterialApp(
+      home: MyApp(
+        cityService: mockCityService,
+      ),
+    );
+  }
+
   testWidgets('App builds without errors', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
     expect(find.text('No data Found'), findsOneWidget);
   });
 
   testWidgets('Leading icon is present in the AppBar',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
-    expect(find.byType(WeatherForemostIcon),
-        findsOneWidget); // Update with your custom icon finder
+    await tester.pumpWidget(createTestWidget());
+    expect(find.byType(WeatherForemostIcon), findsOneWidget);
   });
 
   testWidgets('AppBar title is styled correctly', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
     final appBarTitle = find.text('WeatherForemost');
     expect(appBarTitle, findsOneWidget);
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
@@ -36,9 +49,7 @@ void main() {
 
   testWidgets('Body displays correct initial content',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
     expect(find.byType(WeatherForemostIconNotFound), findsOneWidget);
 
     final noDataText = find.text('No data Found');
@@ -56,9 +67,7 @@ void main() {
 
   testWidgets('Floating action button is displayed and styled correctly',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
     final fab = find.byType(FloatingActionButton);
 
     final FloatingActionButton fabWidget =
@@ -74,9 +83,7 @@ void main() {
 
   testWidgets('Add styled BottomNavigationBar with 3 styled icons',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
 
     // check the BottomNavigationBar is present
     final bottomNavBar = find.byType(BottomNavigationBar);
@@ -108,9 +115,7 @@ void main() {
 
   testWidgets('Custom border on BottomNavigationBar',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
 
     // check that Container of BottomNavigationBar exists
     final container = find.byType(Container);
@@ -133,9 +138,7 @@ void main() {
 
   testWidgets('FloatingActionButton opens modal bottom sheet with form',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
 
     // verify FAB exists and tap it
     final fab = find.byType(FloatingActionButton);
@@ -150,11 +153,10 @@ void main() {
     expect(find.text('Add a description'), findsOneWidget);
     expect(find.text('Save City'), findsOneWidget);
   });
+
   testWidgets('Modal bottom sheet form elements have correct properties',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: MyApp(),
-    ));
+    await tester.pumpWidget(createTestWidget());
 
     /// verify FAB exists and tap it
     final fab = find.byType(FloatingActionButton);
@@ -167,16 +169,21 @@ void main() {
     expect(addCityField, findsOneWidget);
 
     final addCityFieldWidget = tester.widget<TextField>(addCityField);
+    expect(addCityFieldWidget.focusNode, isNotNull);
+    expect(addCityFieldWidget.controller, isNotNull);
+
     final addCityLabel = addCityFieldWidget.decoration?.label as Text?;
     expect(addCityLabel?.data, 'Add City');
     expect(addCityFieldWidget.decoration?.border,
         isInstanceOf<OutlineInputBorder>());
 
-    // check properties of 'Description' input
     final descriptionField = find.widgetWithText(TextField, 'Description');
     expect(descriptionField, findsOneWidget);
 
     final descriptionFieldWidget = tester.widget<TextField>(descriptionField);
+    expect(descriptionFieldWidget.focusNode, isNotNull);
+    expect(descriptionFieldWidget.controller, isNotNull);
+
     final descriptionLabel = descriptionFieldWidget.decoration?.label as Text?;
     expect(descriptionLabel?.data, 'Description');
     expect(descriptionFieldWidget.decoration?.hintText, 'Add a description');
@@ -197,5 +204,23 @@ void main() {
     final shape =
         saveButtonWidget.style?.shape?.resolve({}) as RoundedRectangleBorder?;
     expect(shape?.borderRadius, BorderRadius.circular(4));
+  });
+
+  testWidgets('City search displays filtered results',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+
+    final fab = find.byType(FloatingActionButton);
+    await tester.tap(fab);
+    await tester.pumpAndSettle();
+
+    final addCityField = find.widgetWithText(TextField, 'Add City');
+    await tester.enterText(addCityField, 'Mi');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Miami'), findsOneWidget);
+    expect(find.text('Milwaukee'), findsOneWidget);
+    expect(find.text('Minneapolis'), findsOneWidget);
+    expect(find.text('Miramar'), findsOneWidget);
   });
 }
