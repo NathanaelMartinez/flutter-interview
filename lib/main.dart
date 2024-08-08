@@ -53,37 +53,53 @@ class _MyAppState extends State<MyApp> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {},
           backgroundColor: Colors.blue,
+          elevation: 0,
           child: const Icon(Icons.add, color: Colors.white, size: 50),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.home_outlined,
-                size: 50,
-                color: Color.fromARGB(255, 90, 90, 90),
-              ),
-              label: 'Home',
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Divider(
+              color: Color.fromARGB(255, 90, 90, 90),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.place_outlined,
-                size: 50,
-                color: Colors.blue,
-              ),
-              label: 'Location',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.person_outline,
-                size: 50,
-                color: Color.fromARGB(255, 90, 90, 90),
-              ),
-              label: 'Profile',
+            BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(left: 50.0),
+                    child: Icon(
+                      Icons.home_outlined,
+                      size: 50,
+                      color: Color.fromARGB(255, 90, 90, 90),
+                    ),
+                  ),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.place_outlined,
+                    size: 50,
+                    color: Colors.blue,
+                  ),
+                  label: 'Location',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(right: 50.0),
+                    child: Icon(
+                      Icons.person_outline,
+                      size: 50,
+                      color: Color.fromARGB(255, 90, 90, 90),
+                    ),
+                  ),
+                  label: 'Profile',
+                ),
+              ],
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
             ),
           ],
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
         ),
       ),
     );

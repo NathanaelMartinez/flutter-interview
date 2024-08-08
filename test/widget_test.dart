@@ -59,30 +59,48 @@ void main() {
     expect(icon.icon, Icons.add);
     expect(icon.color, Colors.white);
     expect(icon.size, 50.0);
+    expect(fabWidget.elevation, 0.0);
   });
 
-  testWidgets('Add BottomNavigationBar with 3 styled icons',
+  testWidgets('Add styled BottomNavigationBar with 3 styled icons',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
+
+    // Check the BottomNavigationBar is present
     final bottomNavBar = find.byType(BottomNavigationBar);
     expect(bottomNavBar, findsOneWidget);
 
     final BottomNavigationBar widget = tester.widget(bottomNavBar);
-    expect(widget.items[0].icon, isInstanceOf<Icon>());
-    expect((widget.items[0].icon as Icon).icon, Icons.home_outlined);
-    expect((widget.items[0].icon as Icon).size, 50);
-    expect((widget.items[0].icon as Icon).color,
-        const Color.fromARGB(255, 90, 90, 90));
+    expect(widget.items.length, 3);
 
-    expect(widget.items[1].icon, isInstanceOf<Icon>());
-    expect((widget.items[1].icon as Icon).icon, Icons.place_outlined);
-    expect((widget.items[1].icon as Icon).size, 50);
-    expect((widget.items[1].icon as Icon).color, Colors.blue);
+    // Check the first item
+    final firstItemIcon = widget.items[0].icon as Padding;
+    final firstIcon = firstItemIcon.child as Icon;
+    expect(firstIcon.icon, Icons.home_outlined);
+    expect(firstIcon.size, 50);
+    expect(firstIcon.color, const Color.fromARGB(255, 90, 90, 90));
 
-    expect(widget.items[2].icon, isInstanceOf<Icon>());
-    expect((widget.items[2].icon as Icon).icon, Icons.person_outline);
-    expect((widget.items[2].icon as Icon).size, 50);
-    expect((widget.items[2].icon as Icon).color,
-        const Color.fromARGB(255, 90, 90, 90));
+    // Check the second item
+    final secondIcon = widget.items[1].icon as Icon;
+    expect(secondIcon.icon, Icons.place_outlined);
+    expect(secondIcon.size, 50);
+    expect(secondIcon.color, Colors.blue);
+
+    // Check the third item
+    final thirdItemIcon = widget.items[2].icon as Padding;
+    final thirdIcon = thirdItemIcon.child as Icon;
+    expect(thirdIcon.icon, Icons.person_outline);
+    expect(thirdIcon.size, 50);
+    expect(thirdIcon.color, const Color.fromARGB(255, 90, 90, 90));
+  });
+
+  testWidgets('Divider styling', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    final divider = find.byType(Divider);
+    expect(divider, findsOneWidget);
+
+    final Divider dividerWidget = tester.widget<Divider>(divider);
+    expect(dividerWidget.color, const Color.fromARGB(255, 90, 90, 90));
   });
 }
