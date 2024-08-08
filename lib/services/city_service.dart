@@ -55,6 +55,7 @@ class CityService {
         throw Exception('Failed to parse current conditions');
       }
     } else {
+      print('Response: ${response.body}');
       throw Exception('Failed to load current conditions');
     }
   }

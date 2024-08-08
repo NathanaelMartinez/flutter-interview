@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
-import 'package:interview_flutter/util/weather_icons.dart';
+import 'package:interview_flutter/widgets/add_city_modal.dart';
+import 'package:interview_flutter/widgets/weather_icons.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,192 +102,25 @@ class _MyAppState extends State<MyApp> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(28.0),
-                topRight: Radius.circular(28.0),
-              ),
-              child: Container(
-                color: Colors.white,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 16.0,
-                    right: 16.0,
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 16.0),
-                      Container(
-                        width: 32,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 121, 116, 126),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      const SizedBox(height: 56.0),
-                      TextField(
-                        controller: _cityController,
-                        focusNode: _cityFocusNode,
-                        onChanged: (value) {
-                          setState(() {
-                            _filterCities(value);
-                          });
-                        },
-                        decoration: InputDecoration(
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          label: Text(
-                            'Add City',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16,
-                              color: _cityFocusNode.hasFocus
-                                  ? Colors.blue
-                                  : const Color.fromARGB(255, 73, 69, 79),
-                            ),
-                          ),
-                          border: const OutlineInputBorder(),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide:
-                                BorderSide(width: 2, color: Colors.blue),
-                          ),
-                          labelStyle: TextStyle(
-                            color: _cityFocusNode.hasFocus
-                                ? Colors.blue
-                                : const Color.fromARGB(255, 73, 69, 79),
-                          ),
-                          suffixIcon: _cityController.text.isNotEmpty
-                              ? IconButton(
-                                  icon:
-                                      const Icon(CupertinoIcons.clear_circled),
-                                  onPressed: () {
-                                    _cityController.clear();
-                                    setState(() {
-                                      _filteredCities = [];
-                                      _isCitySelected = false;
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _filteredCities.isNotEmpty
-                          ? Container(
-                              constraints: const BoxConstraints(
-                                maxHeight: 200, // Limit to 4 items
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.grey,
-                                    spreadRadius: -8,
-                                    blurRadius: 7,
-                                    offset: Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: ListView.builder(
-                                itemCount: _filteredCities.length,
-                                itemBuilder: (context, index) {
-                                  return ListTile(
-                                    title:
-                                        Text(_filteredCities[index]['name']!),
-                                    onTap: () {
-                                      _cityController.text =
-                                          _filteredCities[index]['name']!;
-                                      _selectedLocationKey =
-                                          _filteredCities[index]
-                                              ['locationKey']!;
-                                      setState(() {
-                                        _filteredCities = [];
-                                        _isCitySelected = true;
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                            )
-                          : Column(
-                              children: [
-                                TextField(
-                                  controller: _descriptionController,
-                                  focusNode: _descriptionFocusNode,
-                                  maxLines: 4,
-                                  decoration: InputDecoration(
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.always,
-                                    label: Text(
-                                      'Description',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16,
-                                        color: _descriptionFocusNode.hasFocus
-                                            ? Colors.blue
-                                            : const Color.fromARGB(
-                                                255, 73, 69, 79),
-                                      ),
-                                    ),
-                                    hintText: 'Add a description',
-                                    hintStyle: const TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 24,
-                                      color: Color.fromARGB(255, 153, 153, 153),
-                                    ),
-                                    border: const OutlineInputBorder(),
-                                    focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          width: 2, color: Colors.blue),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 79),
-                              ],
-                            ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                              _isCitySelected
-                                  ? Colors.blue
-                                  : const Color.fromARGB(255, 153, 153, 153),
-                            ),
-                            shape: MaterialStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                          onPressed: _isCitySelected
-                              ? () async {
-                                  await widget.databaseHelper.insertCity(
-                                    _cityController.text,
-                                    _descriptionController.text,
-                                    _selectedLocationKey!,
-                                  );
-                                  Navigator.of(context).pop();
-                                  _loadCities();
-                                }
-                              : null,
-                          child: const Text(
-                            'Save City',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+        return AddCityModal(
+          cityController: _cityController,
+          cityFocusNode: _cityFocusNode,
+          descriptionController: _descriptionController,
+          descriptionFocusNode: _descriptionFocusNode,
+          filteredCities: _filteredCities,
+          isCitySelected: _isCitySelected,
+          filterCities: _filterCities,
+          onSaveCity: () async {
+            await widget.databaseHelper.insertCity(
+              _cityController.text,
+              _descriptionController.text,
+              _selectedLocationKey!,
             );
+            _loadCities();
+          },
+          onClearCitySelection: () {
+            _filteredCities = [];
+            _isCitySelected = false;
           },
         );
       },
