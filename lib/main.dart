@@ -1,24 +1,33 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'city_service.dart';
 
-void main() => runApp(
-      MaterialApp(
-        title: 'WeatherForemost',
-        theme: ThemeData(
-          inputDecorationTheme: const InputDecorationTheme(
-            border: OutlineInputBorder(),
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.w400,
-              fontSize: 16,
-              color: Color.fromARGB(255, 73, 69, 79),
-            ),
+void main() async {
+  // Ensure WidgetsFlutterBinding is initialized before calling `runApp`
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+  runApp(
+    MaterialApp(
+      title: 'WeatherForemost',
+      theme: ThemeData(
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 16,
+            color: Color.fromARGB(255, 73, 69, 79),
           ),
         ),
-        home: MyApp(
-          cityService: CityService(),
-        ),
       ),
-    );
+      home: MyApp(
+        cityService: CityService(),
+      ),
+    ),
+  );
+}
 
 class MyApp extends StatefulWidget {
   final CityService cityService;
@@ -68,144 +77,156 @@ class _MyAppState extends State<MyApp> {
               ),
               child: Container(
                 color: Colors.white,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 16.0,
-                      right: 16.0,
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 16.0),
-                        Container(
-                          width: 32,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 121, 116, 126),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 16.0,
+                    right: 16.0,
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 16.0),
+                      Container(
+                        width: 32,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 121, 116, 126),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(height: 56.0),
-                        TextField(
-                          controller: _cityController,
-                          focusNode: _cityFocusNode,
-                          onChanged: (value) {
-                            setState(() {
-                              _filterCities(value);
-                            });
-                          },
-                          decoration: InputDecoration(
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
-                            label: Text(
-                              'Add City',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                                color: _cityFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : const Color.fromARGB(255, 73, 69, 79),
-                              ),
-                            ),
-                            border: const OutlineInputBorder(),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 2, color: Colors.blue),
-                            ),
-                            labelStyle: TextStyle(
+                      ),
+                      const SizedBox(height: 56.0),
+                      TextField(
+                        controller: _cityController,
+                        focusNode: _cityFocusNode,
+                        onChanged: (value) {
+                          setState(() {
+                            _filterCities(value);
+                          });
+                        },
+                        decoration: InputDecoration(
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          label: Text(
+                            'Add City',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
                               color: _cityFocusNode.hasFocus
                                   ? Colors.blue
                                   : const Color.fromARGB(255, 73, 69, 79),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        _filteredCities.isNotEmpty
-                            ? Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      spreadRadius: -8,
-                                      blurRadius: 7,
-                                      offset: Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: _filteredCities.length,
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text(_filteredCities[index]),
-                                    );
+                          border: const OutlineInputBorder(),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide:
+                                BorderSide(width: 2, color: Colors.blue),
+                          ),
+                          labelStyle: TextStyle(
+                            color: _cityFocusNode.hasFocus
+                                ? Colors.blue
+                                : const Color.fromARGB(255, 73, 69, 79),
+                          ),
+                          suffixIcon: _cityController.text.isNotEmpty
+                              ? IconButton(
+                                  icon:
+                                      const Icon(CupertinoIcons.clear_circled),
+                                  onPressed: () {
+                                    _cityController.clear();
+                                    setState(() {
+                                      _filteredCities = [];
+                                    });
                                   },
-                                ),
-                              )
-                            : Column(
-                                children: [
-                                  TextField(
-                                    controller: _descriptionController,
-                                    focusNode: _descriptionFocusNode,
-                                    maxLines: 4,
-                                    decoration: InputDecoration(
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.always,
-                                      label: Text(
-                                        'Description',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 16,
-                                          color: _descriptionFocusNode.hasFocus
-                                              ? Colors.blue
-                                              : const Color.fromARGB(
-                                                  255, 73, 69, 79),
-                                        ),
-                                      ),
-                                      hintText: 'Add a description',
-                                      hintStyle: const TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 24,
-                                        color:
-                                            Color.fromARGB(255, 153, 153, 153),
-                                      ),
-                                      border: const OutlineInputBorder(),
-                                      focusedBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            width: 2, color: Colors.blue),
-                                      ),
-                                    ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _filteredCities.isNotEmpty
+                          ? Container(
+                              constraints: const BoxConstraints(
+                                maxHeight: 200, // Limit to 4 items
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.grey,
+                                    spreadRadius: -8,
+                                    blurRadius: 7,
+                                    offset: Offset(0, 8),
                                   ),
-                                  const SizedBox(height: 79),
                                 ],
                               ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                                backgroundColor: const MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 153, 153, 153),
-                                ),
-                                shape: MaterialStatePropertyAll(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
+                              child: ListView.builder(
+                                itemCount: _filteredCities.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text(_filteredCities[index]),
+                                  );
+                                },
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                TextField(
+                                  controller: _descriptionController,
+                                  focusNode: _descriptionFocusNode,
+                                  maxLines: 4,
+                                  decoration: InputDecoration(
+                                    floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                    label: Text(
+                                      'Description',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
+                                        color: _descriptionFocusNode.hasFocus
+                                            ? Colors.blue
+                                            : const Color.fromARGB(
+                                                255, 73, 69, 79),
+                                      ),
+                                    ),
+                                    hintText: 'Add a description',
+                                    hintStyle: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 24,
+                                      color: Color.fromARGB(255, 153, 153, 153),
+                                    ),
+                                    border: const OutlineInputBorder(),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          width: 2, color: Colors.blue),
+                                    ),
                                   ),
-                                )),
-                            onPressed: () {
-                              // TODO: Handle save action
-                            },
-                            child: const Text(
-                              'Save City',
-                              style: TextStyle(color: Colors.white),
+                                ),
+                                const SizedBox(height: 79),
+                              ],
+                            ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: const MaterialStatePropertyAll(
+                              Color.fromARGB(255, 153, 153, 153),
+                            ),
+                            shape: MaterialStatePropertyAll(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
+                          onPressed: () {
+                            // TODO: Handle save action
+                          },
+                          child: const Text(
+                            'Save City',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
