@@ -223,4 +223,35 @@ void main() {
     expect(find.text('Minneapolis'), findsOneWidget);
     expect(find.text('Miramar'), findsOneWidget);
   });
+
+  testWidgets('Bottom sheet adjusts height with keyboard visibility',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+
+    final fab = find.byType(FloatingActionButton);
+    await tester.tap(fab);
+    await tester.pumpAndSettle();
+
+    // verify bottom sheet is initially visible
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+
+    // check that "Save City" button is initially visible
+    expect(find.text('Save City'), findsOneWidget);
+
+    // simulate tap to open keyboard on Add City TextField
+    final addCityField = find.widgetWithText(TextField, 'Add City');
+    await tester.tap(addCityField);
+    await tester.pumpAndSettle();
+
+    // Simulate the keyboard opening
+    await tester.showKeyboard(addCityField);
+    await tester.pumpAndSettle();
+
+    // verify keyboard is shown
+    expect(tester.testTextInput.isVisible, isTrue,
+        reason: 'Keyboard should be visible');
+
+    // check that "Save City" button is still visible when keyboard is open
+    expect(find.text('Save City'), findsOneWidget);
+  });
 }
