@@ -45,4 +45,19 @@ void main() {
     expect(textStylePleaseAddCity?.color,
         const Color.fromARGB(255, 125, 125, 125));
   });
+
+  testWidgets('Floating action button is displayed and styled correctly',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    final fab = find.byType(FloatingActionButton);
+
+    final FloatingActionButton fabWidget =
+        tester.widget<FloatingActionButton>(fab);
+    expect(fabWidget.backgroundColor, Colors.blue);
+
+    final icon = fabWidget.child as Icon;
+    expect(icon.icon, Icons.add);
+    expect(icon.color, Colors.white);
+    expect(icon.size, 50.0);
+  });
 }

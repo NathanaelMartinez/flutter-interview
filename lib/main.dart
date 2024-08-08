@@ -43,6 +43,11 @@ class MyApp extends StatelessWidget {
             ],
           ),
         ),
+        floatingActionButton: const FloatingActionButton(
+          onPressed: null,
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.add, color: Colors.white, size: 50),
+        ),
       ),
     );
   }
