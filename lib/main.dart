@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
 import 'package:interview_flutter/widgets/add_city_modal.dart';
+import 'package:interview_flutter/widgets/city_list.dart';
 import 'package:interview_flutter/widgets/weather_icons.dart';
 
 void main() async {
@@ -185,84 +186,7 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
-              itemCount: _cities.length,
-              itemBuilder: (context, index) {
-                final city = _cities[index];
-                final weatherIcon = city['weatherIcon'];
-                final localObservationDateTime =
-                    city['localObservationDateTime'];
-                final time = DateTime.parse(localObservationDateTime)
-                    .toLocal()
-                    .toString()
-                    .substring(11, 16);
-
-                return Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade300, width: 1),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                city['name'],
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color.fromARGB(225, 29, 27, 32),
-                                ),
-                              ),
-                              Text(
-                                city['description'],
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w400,
-                                  color: Color.fromARGB(225, 29, 27, 32),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 92,
-                        decoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 201, 229, 255),
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset('assets/icons/sun.png',
-                                scale: 1.30), // TODO: implement weatherIcon
-                            Text(
-                              time,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+          : CityList(cities: _cities),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showAddCityModal(context);
