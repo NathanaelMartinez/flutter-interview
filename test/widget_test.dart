@@ -60,4 +60,29 @@ void main() {
     expect(icon.color, Colors.white);
     expect(icon.size, 50.0);
   });
+
+  testWidgets('Add BottomNavigationBar with 3 styled icons',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    final bottomNavBar = find.byType(BottomNavigationBar);
+    expect(bottomNavBar, findsOneWidget);
+
+    final BottomNavigationBar widget = tester.widget(bottomNavBar);
+    expect(widget.items[0].icon, isInstanceOf<Icon>());
+    expect((widget.items[0].icon as Icon).icon, Icons.home_outlined);
+    expect((widget.items[0].icon as Icon).size, 50);
+    expect((widget.items[0].icon as Icon).color,
+        const Color.fromARGB(255, 90, 90, 90));
+
+    expect(widget.items[1].icon, isInstanceOf<Icon>());
+    expect((widget.items[1].icon as Icon).icon, Icons.place_outlined);
+    expect((widget.items[1].icon as Icon).size, 50);
+    expect((widget.items[1].icon as Icon).color, Colors.blue);
+
+    expect(widget.items[2].icon, isInstanceOf<Icon>());
+    expect((widget.items[2].icon as Icon).icon, Icons.person_outline);
+    expect((widget.items[2].icon as Icon).size, 50);
+    expect((widget.items[2].icon as Icon).color,
+        const Color.fromARGB(255, 90, 90, 90));
+  });
 }

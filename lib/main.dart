@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 void main() => runApp(const MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,8 +37,9 @@ class MyApp extends StatelessWidget {
               Text(
                 'No data Found',
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 90, 90, 90)),
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 90, 90, 90),
+                ),
               ),
               Text(
                 'Please add a city to track its weather',
@@ -43,10 +50,40 @@ class MyApp extends StatelessWidget {
             ],
           ),
         ),
-        floatingActionButton: const FloatingActionButton(
-          onPressed: null,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {},
           backgroundColor: Colors.blue,
-          child: Icon(Icons.add, color: Colors.white, size: 50),
+          child: const Icon(Icons.add, color: Colors.white, size: 50),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home_outlined,
+                size: 50,
+                color: Color.fromARGB(255, 90, 90, 90),
+              ),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.place_outlined,
+                size: 50,
+                color: Colors.blue,
+              ),
+              label: 'Location',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.person_outline,
+                size: 50,
+                color: Color.fromARGB(255, 90, 90, 90),
+              ),
+              label: 'Profile',
+            ),
+          ],
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
         ),
       ),
     );
