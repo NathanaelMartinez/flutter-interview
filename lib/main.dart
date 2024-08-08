@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
       title: 'Material App',
       home: Scaffold(
         appBar: AppBar(
+          leading: const WeatherForemostIcon(),
           title: const Text('NetForemost'),
         ),
         body: const Center(
@@ -18,5 +19,14 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class WeatherForemostIcon extends StatelessWidget {
+  const WeatherForemostIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(Icons.cloud); //TODO: create custom Icon
   }
 }
