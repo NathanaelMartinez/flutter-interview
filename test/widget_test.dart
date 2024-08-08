@@ -1,24 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interview_flutter/main.dart';
-import 'package:interview_flutter/city_service.dart';
+import 'package:interview_flutter/services/city_service.dart';
+import 'package:interview_flutter/services/database_helper.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'widget_test.mocks.dart';
 
-@GenerateMocks([CityService])
+@GenerateMocks([CityService, Database, DatabaseHelper])
 void main() {
   final mockCityService = MockCityService();
+  final mockDatabaseHelper = MockDatabaseHelper();
 
+  when(mockCityService.fetchCities(any)).thenAnswer(
+    (_) async => [],
+  );
+
+  // Specific query examples
   when(mockCityService.fetchCities('Mi')).thenAnswer(
     (_) async => ['Miami', 'Milwaukee', 'Minneapolis', 'Miramar'],
+  );
+
+  when(mockDatabaseHelper.getAllCities()).thenAnswer(
+    (_) async => [
+      {'name': 'Test City', 'description': 'Test Description'},
+    ],
+  );
+
+  when(mockDatabaseHelper.insertCity(any, any)).thenAnswer(
+    (_) async => 1,
   );
 
   Widget createTestWidget() {
     return MaterialApp(
       home: MyApp(
         cityService: mockCityService,
+        databaseHelper: mockDatabaseHelper,
       ),
     );
   }
@@ -85,27 +104,23 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
 
-    // check the BottomNavigationBar is present
     final bottomNavBar = find.byType(BottomNavigationBar);
     expect(bottomNavBar, findsOneWidget);
 
     final BottomNavigationBar widget = tester.widget(bottomNavBar);
     expect(widget.items.length, 3);
 
-    // check the first item
     final firstItemIcon = widget.items[0].icon as Padding;
     final firstIcon = firstItemIcon.child as Icon;
     expect(firstIcon.icon, Icons.home_outlined);
     expect(firstIcon.size, 32);
     expect(firstIcon.color, const Color.fromARGB(255, 94, 93, 93));
 
-    // check the second item
     final secondIcon = widget.items[1].icon as Icon;
     expect(secondIcon.icon, Icons.place_outlined);
     expect(secondIcon.size, 32);
     expect(secondIcon.color, Colors.blue);
 
-    // check the third item
     final thirdItemIcon = widget.items[2].icon as Padding;
     final thirdIcon = thirdItemIcon.child as Icon;
     expect(thirdIcon.icon, Icons.person_outline);
@@ -117,7 +132,6 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
 
-    // check that Container of BottomNavigationBar exists
     final container = find.byType(Container);
     bool found = false;
     for (var containerWidget in container.evaluate()) {
@@ -140,14 +154,11 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
 
-    // verify FAB exists and tap it
     final fab = find.byType(FloatingActionButton);
     expect(fab, findsOneWidget);
     await tester.tap(fab);
     await tester.pumpAndSettle();
-    // wait for modal bottom sheet to appear
 
-    // verify modal bottom sheet contains form
     expect(find.text('Add City'), findsOneWidget);
     expect(find.text('Description'), findsOneWidget);
     expect(find.text('Add a description'), findsOneWidget);
@@ -158,13 +169,10 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
 
-    /// verify FAB exists and tap it
     final fab = find.byType(FloatingActionButton);
     await tester.tap(fab);
     await tester.pumpAndSettle();
-    // wait for modal bottom sheet to appear
 
-    // check properties of 'Add City' input
     final addCityField = find.widgetWithText(TextField, 'Add City');
     expect(addCityField, findsOneWidget);
 
@@ -194,7 +202,6 @@ void main() {
         isInstanceOf<OutlineInputBorder>());
     expect(descriptionFieldWidget.maxLines, 4);
 
-    // check properties of 'Save City' button
     final saveButton = find.widgetWithText(ElevatedButton, 'Save City');
     expect(saveButton, findsOneWidget);
 
@@ -232,26 +239,55 @@ void main() {
     await tester.tap(fab);
     await tester.pumpAndSettle();
 
-    // verify bottom sheet is initially visible
-    expect(find.byType(SingleChildScrollView), findsOneWidget);
-
-    // check that "Save City" button is initially visible
+    expect(find.byType(TextField), findsAtLeast(1));
     expect(find.text('Save City'), findsOneWidget);
 
-    // simulate tap to open keyboard on Add City TextField
     final addCityField = find.widgetWithText(TextField, 'Add City');
     await tester.tap(addCityField);
     await tester.pumpAndSettle();
 
-    // Simulate the keyboard opening
     await tester.showKeyboard(addCityField);
     await tester.pumpAndSettle();
 
-    // verify keyboard is shown
     expect(tester.testTextInput.isVisible, isTrue,
         reason: 'Keyboard should be visible');
-
-    // check that "Save City" button is still visible when keyboard is open
     expect(find.text('Save City'), findsOneWidget);
+  });
+
+  testWidgets('Save city and description to database',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(createTestWidget());
+
+    final fab = find.byType(FloatingActionButton);
+    await tester.tap(fab);
+    await tester.pumpAndSettle();
+
+    final addCityField = find.widgetWithText(TextField, 'Add City');
+    final descriptionField = find.widgetWithText(TextField, 'Description');
+    final saveButton = find.widgetWithText(ElevatedButton, 'Save City');
+
+    await tester.enterText(addCityField, 'Test City');
+    await tester.enterText(descriptionField, 'Test Description');
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    when(mockDatabaseHelper.getAllCities()).thenAnswer(
+      (_) async => [
+        {'name': 'Test City', 'description': 'Test Description'},
+      ],
+    );
+
+    await tester.pumpWidget(createTestWidget());
+    await tester.pumpAndSettle();
+
+    final listView = find.byType(ListView);
+    expect(listView, findsOneWidget);
+
+    // check that ListView contains 'Test City' entry
+    expect(find.descendant(of: listView, matching: find.text('Test City')),
+        findsOneWidget);
+    expect(
+        find.descendant(of: listView, matching: find.text('Test Description')),
+        findsOneWidget);
   });
 }

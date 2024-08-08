@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'city_service.dart';
+import 'package:interview_flutter/services/city_service.dart';
+import 'package:interview_flutter/services/database_helper.dart';
 
 void main() async {
   // Ensure WidgetsFlutterBinding is initialized before calling `runApp`
@@ -24,6 +25,7 @@ void main() async {
       ),
       home: MyApp(
         cityService: CityService(),
+        databaseHelper: DatabaseHelper(),
       ),
     ),
   );
@@ -31,7 +33,9 @@ void main() async {
 
 class MyApp extends StatefulWidget {
   final CityService cityService;
-  const MyApp({super.key, required this.cityService});
+  final DatabaseHelper databaseHelper;
+  const MyApp(
+      {super.key, required this.cityService, required this.databaseHelper});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -43,6 +47,8 @@ class _MyAppState extends State<MyApp> {
   final TextEditingController _descriptionController = TextEditingController();
   final FocusNode _descriptionFocusNode = FocusNode();
   List<String> _filteredCities = [];
+  bool _isCitySelected = false;
+  List<Map<String, dynamic>> _cities = [];
 
   @override
   void initState() {
@@ -53,12 +59,28 @@ class _MyAppState extends State<MyApp> {
     _descriptionFocusNode.addListener(() {
       setState(() {});
     });
+    _fetchCities();
   }
 
   void _filterCities(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredCities = [];
+        _isCitySelected = false;
+      });
+      return;
+    }
+
     final List<String> matches = await widget.cityService.fetchCities(query);
     setState(() {
       _filteredCities = matches;
+    });
+  }
+
+  Future<void> _fetchCities() async {
+    final data = await widget.databaseHelper.getAllCities();
+    setState(() {
+      _cities = data;
     });
   }
 
@@ -134,6 +156,7 @@ class _MyAppState extends State<MyApp> {
                                     _cityController.clear();
                                     setState(() {
                                       _filteredCities = [];
+                                      _isCitySelected = false;
                                     });
                                   },
                                 )
@@ -143,7 +166,7 @@ class _MyAppState extends State<MyApp> {
                       const SizedBox(height: 20),
                       _filteredCities.isNotEmpty
                           ? Container(
-                              constraints: const BoxConstraints(
+                              constraints: BoxConstraints(
                                 maxHeight: 200, // Limit to 4 items
                               ),
                               decoration: BoxDecoration(
@@ -163,6 +186,14 @@ class _MyAppState extends State<MyApp> {
                                 itemBuilder: (context, index) {
                                   return ListTile(
                                     title: Text(_filteredCities[index]),
+                                    onTap: () {
+                                      _cityController.text =
+                                          _filteredCities[index];
+                                      setState(() {
+                                        _filteredCities = [];
+                                        _isCitySelected = true;
+                                      });
+                                    },
                                   );
                                 },
                               ),
@@ -208,8 +239,10 @@ class _MyAppState extends State<MyApp> {
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: const MaterialStatePropertyAll(
-                              Color.fromARGB(255, 153, 153, 153),
+                            backgroundColor: MaterialStatePropertyAll(
+                              _isCitySelected
+                                  ? Colors.blue
+                                  : Color.fromARGB(255, 153, 153, 153),
                             ),
                             shape: MaterialStatePropertyAll(
                               RoundedRectangleBorder(
@@ -217,9 +250,16 @@ class _MyAppState extends State<MyApp> {
                               ),
                             ),
                           ),
-                          onPressed: () {
-                            // TODO: Handle save action
-                          },
+                          onPressed: _isCitySelected
+                              ? () async {
+                                  await widget.databaseHelper.insertCity(
+                                    _cityController.text,
+                                    _descriptionController.text,
+                                  );
+                                  await _fetchCities(); // Refresh city list
+                                  Navigator.of(context).pop();
+                                }
+                              : null,
                           child: const Text(
                             'Save City',
                             style: TextStyle(color: Colors.white),
@@ -262,29 +302,40 @@ class _MyAppState extends State<MyApp> {
         centerTitle: false,
         backgroundColor: Colors.black,
       ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            WeatherForemostIconNotFound(),
-            Text(
-              'No data Found',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 19,
-                color: Color.fromARGB(255, 94, 93, 93),
+      body: _cities.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  WeatherForemostIconNotFound(),
+                  Text(
+                    'No data Found',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 19,
+                      color: Color.fromARGB(255, 94, 93, 93),
+                    ),
+                  ),
+                  Text(
+                    'Please add a city to track its weather',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 15,
+                        color: Color.fromARGB(255, 94, 93, 93)),
+                  ),
+                ],
               ),
+            )
+          : ListView.builder(
+              itemCount: _cities.length,
+              itemBuilder: (context, index) {
+                final city = _cities[index];
+                return ListTile(
+                  title: Text(city['name']),
+                  subtitle: Text(city['description']),
+                );
+              },
             ),
-            Text(
-              'Please add a city to track its weather',
-              style: TextStyle(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 15,
-                  color: Color.fromARGB(255, 94, 93, 93)),
-            ),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showAddCityModal(context);
