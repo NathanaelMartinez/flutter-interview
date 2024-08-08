@@ -5,7 +5,7 @@ import 'package:interview_flutter/main.dart';
 void main() {
   testWidgets('App builds without errors', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
-    expect(find.text('Hello World'), findsOneWidget);
+    expect(find.text('No data Found'), findsOneWidget);
   });
 
   testWidgets('Leading icon is present in the AppBar',
@@ -26,5 +26,23 @@ void main() {
     final textStyle = tester.widget<Text>(appBarTitle).style;
     expect(textStyle?.color, Colors.white);
     expect(textStyle?.fontWeight, FontWeight.bold);
+  });
+
+  testWidgets('Body displays correct initial content',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
+    expect(find.byType(WeatherForemostIconNotFound), findsOneWidget);
+
+    final noDataText = find.text('No data Found');
+    expect(noDataText, findsOneWidget);
+    final textStyleNoData = tester.widget<Text>(noDataText).style;
+    expect(textStyleNoData?.color, const Color.fromARGB(255, 90, 90, 90));
+    expect(textStyleNoData?.fontWeight, FontWeight.bold);
+
+    final pleaseAddCity = find.text('Please add a city to track its weather');
+    expect(pleaseAddCity, findsOneWidget);
+    final textStylePleaseAddCity = tester.widget<Text>(pleaseAddCity).style;
+    expect(textStylePleaseAddCity?.color,
+        const Color.fromARGB(255, 125, 125, 125));
   });
 }
