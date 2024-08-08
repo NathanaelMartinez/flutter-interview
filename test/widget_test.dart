@@ -36,14 +36,14 @@ void main() {
     final noDataText = find.text('No data Found');
     expect(noDataText, findsOneWidget);
     final textStyleNoData = tester.widget<Text>(noDataText).style;
-    expect(textStyleNoData?.color, const Color.fromARGB(255, 90, 90, 90));
-    expect(textStyleNoData?.fontWeight, FontWeight.bold);
+    expect(textStyleNoData?.color, const Color.fromARGB(255, 94, 93, 93));
+    expect(textStyleNoData?.fontWeight, FontWeight.w600);
 
     final pleaseAddCity = find.text('Please add a city to track its weather');
     expect(pleaseAddCity, findsOneWidget);
     final textStylePleaseAddCity = tester.widget<Text>(pleaseAddCity).style;
-    expect(textStylePleaseAddCity?.color,
-        const Color.fromARGB(255, 125, 125, 125));
+    expect(
+        textStylePleaseAddCity?.color, const Color.fromARGB(255, 94, 93, 93));
   });
 
   testWidgets('Floating action button is displayed and styled correctly',
@@ -66,41 +66,54 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // Check the BottomNavigationBar is present
+    // check the BottomNavigationBar is present
     final bottomNavBar = find.byType(BottomNavigationBar);
     expect(bottomNavBar, findsOneWidget);
 
     final BottomNavigationBar widget = tester.widget(bottomNavBar);
     expect(widget.items.length, 3);
 
-    // Check the first item
+    // check the first item
     final firstItemIcon = widget.items[0].icon as Padding;
     final firstIcon = firstItemIcon.child as Icon;
     expect(firstIcon.icon, Icons.home_outlined);
     expect(firstIcon.size, 50);
-    expect(firstIcon.color, const Color.fromARGB(255, 90, 90, 90));
+    expect(firstIcon.color, const Color.fromARGB(255, 94, 93, 93));
 
-    // Check the second item
+    // check the second item
     final secondIcon = widget.items[1].icon as Icon;
     expect(secondIcon.icon, Icons.place_outlined);
     expect(secondIcon.size, 50);
     expect(secondIcon.color, Colors.blue);
 
-    // Check the third item
+    // check the third item
     final thirdItemIcon = widget.items[2].icon as Padding;
     final thirdIcon = thirdItemIcon.child as Icon;
     expect(thirdIcon.icon, Icons.person_outline);
     expect(thirdIcon.size, 50);
-    expect(thirdIcon.color, const Color.fromARGB(255, 90, 90, 90));
+    expect(thirdIcon.color, const Color.fromARGB(255, 94, 93, 93));
   });
 
-  testWidgets('Divider styling', (WidgetTester tester) async {
+  testWidgets('Custom border on BottomNavigationBar',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    final divider = find.byType(Divider);
-    expect(divider, findsOneWidget);
-
-    final Divider dividerWidget = tester.widget<Divider>(divider);
-    expect(dividerWidget.color, const Color.fromARGB(255, 90, 90, 90));
+    // check that Container of BottomNavigationBar exists
+    final container = find.byType(Container);
+    bool found = false;
+    for (var containerWidget in container.evaluate()) {
+      final containerElement = containerWidget.widget as Container;
+      if (containerElement.decoration is BoxDecoration) {
+        final BoxDecoration decoration =
+            containerElement.decoration as BoxDecoration;
+        if (decoration.border?.top.width == 2.0 &&
+            decoration.border?.top.color ==
+                const Color.fromARGB(255, 94, 93, 93)) {
+          found = true;
+          break;
+        }
+      }
+    }
+    expect(found, isTrue);
   });
 }
