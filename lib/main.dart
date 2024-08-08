@@ -12,7 +12,16 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           leading: const WeatherForemostIcon(),
-          title: const Text('NetForemost'),
+          title: const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'WeatherForemost',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          centerTitle: false,
+          backgroundColor: Colors.black,
         ),
         body: const Center(
           child: Text('Hello World'),
