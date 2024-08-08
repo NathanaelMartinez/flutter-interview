@@ -5,10 +5,7 @@ import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
 
 void main() async {
-  // Ensure WidgetsFlutterBinding is initialized before calling `runApp`
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Load environment variables
   await dotenv.load(fileName: ".env");
   runApp(
     MaterialApp(
@@ -46,9 +43,10 @@ class _MyAppState extends State<MyApp> {
   final FocusNode _cityFocusNode = FocusNode();
   final TextEditingController _descriptionController = TextEditingController();
   final FocusNode _descriptionFocusNode = FocusNode();
-  List<String> _filteredCities = [];
-  bool _isCitySelected = false;
   List<Map<String, dynamic>> _cities = [];
+  List<Map<String, String>> _filteredCities = [];
+  bool _isCitySelected = false;
+  String? _selectedLocationKey;
 
   @override
   void initState() {
@@ -59,7 +57,7 @@ class _MyAppState extends State<MyApp> {
     _descriptionFocusNode.addListener(() {
       setState(() {});
     });
-    _fetchCities();
+    _loadCities();
   }
 
   void _filterCities(String query) async {
@@ -71,16 +69,23 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    final List<String> matches = await widget.cityService.fetchCities(query);
+    final matches = await widget.cityService.fetchCities(query);
     setState(() {
       _filteredCities = matches;
     });
   }
 
-  Future<void> _fetchCities() async {
-    final data = await widget.databaseHelper.getAllCities();
+  Future<void> _loadCities() async {
+    final cities = await widget.databaseHelper.getAllCities();
+    for (var city in cities) {
+      final weatherData =
+          await widget.cityService.fetchCurrentConditions(city['locationKey']);
+      city['weatherIcon'] = weatherData['WeatherIcon'];
+      city['localObservationDateTime'] =
+          weatherData['LocalObservationDateTime'];
+    }
     setState(() {
-      _cities = data;
+      _cities = cities;
     });
   }
 
@@ -166,7 +171,7 @@ class _MyAppState extends State<MyApp> {
                       const SizedBox(height: 20),
                       _filteredCities.isNotEmpty
                           ? Container(
-                              constraints: BoxConstraints(
+                              constraints: const BoxConstraints(
                                 maxHeight: 200, // Limit to 4 items
                               ),
                               decoration: BoxDecoration(
@@ -185,10 +190,14 @@ class _MyAppState extends State<MyApp> {
                                 itemCount: _filteredCities.length,
                                 itemBuilder: (context, index) {
                                   return ListTile(
-                                    title: Text(_filteredCities[index]),
+                                    title:
+                                        Text(_filteredCities[index]['name']!),
                                     onTap: () {
                                       _cityController.text =
-                                          _filteredCities[index];
+                                          _filteredCities[index]['name']!;
+                                      _selectedLocationKey =
+                                          _filteredCities[index]
+                                              ['locationKey']!;
                                       setState(() {
                                         _filteredCities = [];
                                         _isCitySelected = true;
@@ -242,7 +251,7 @@ class _MyAppState extends State<MyApp> {
                             backgroundColor: MaterialStatePropertyAll(
                               _isCitySelected
                                   ? Colors.blue
-                                  : Color.fromARGB(255, 153, 153, 153),
+                                  : const Color.fromARGB(255, 153, 153, 153),
                             ),
                             shape: MaterialStatePropertyAll(
                               RoundedRectangleBorder(
@@ -255,9 +264,10 @@ class _MyAppState extends State<MyApp> {
                                   await widget.databaseHelper.insertCity(
                                     _cityController.text,
                                     _descriptionController.text,
+                                    _selectedLocationKey!,
                                   );
-                                  await _fetchCities(); // Refresh city list
                                   Navigator.of(context).pop();
+                                  _loadCities();
                                 }
                               : null,
                           child: const Text(
@@ -327,12 +337,83 @@ class _MyAppState extends State<MyApp> {
               ),
             )
           : ListView.builder(
+              padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
               itemCount: _cities.length,
               itemBuilder: (context, index) {
                 final city = _cities[index];
-                return ListTile(
-                  title: Text(city['name']),
-                  subtitle: Text(city['description']),
+                final weatherIcon = city['weatherIcon'];
+                final localObservationDateTime =
+                    city['localObservationDateTime'];
+                final time = DateTime.parse(localObservationDateTime)
+                    .toLocal()
+                    .toString()
+                    .substring(11, 16);
+
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.shade300, width: 1),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                city['name'],
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color.fromARGB(225, 29, 27, 32),
+                                ),
+                              ),
+                              Text(
+                                city['description'],
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color.fromARGB(225, 29, 27, 32),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 90,
+                        decoration: const BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons
+                                  .wb_sunny, // You can replace this with appropriate weather icons
+                              color: Colors.orange,
+                              size: 40,
+                            ),
+                            Text(
+                              time,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -356,19 +437,16 @@ class _MyAppState extends State<MyApp> {
         child: BottomNavigationBar(
           elevation: 0,
           type: BottomNavigationBarType.fixed,
-          items: const [
+          items: [
             BottomNavigationBarItem(
               icon: Padding(
-                padding: EdgeInsets.only(left: 90.0),
-                child: Icon(
-                  Icons.home_outlined,
-                  size: 32,
-                  color: Color.fromARGB(255, 94, 93, 93),
-                ),
+                padding: const EdgeInsets.only(left: 90.0),
+                child: Image.asset('assets/icons/house_filled_outlined.png',
+                    scale: 2),
               ),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(
                 Icons.place_outlined,
                 size: 32,
@@ -376,7 +454,7 @@ class _MyAppState extends State<MyApp> {
               ),
               label: 'Location',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(right: 90.0),
                 child: Icon(
@@ -401,7 +479,7 @@ class WeatherForemostIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(Icons.cloud);
+    return Image.asset('assets/icons/logo.png');
   }
 }
 
@@ -410,6 +488,6 @@ class WeatherForemostIconNotFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(Icons.cloud);
+    return Image.asset('assets/icons/logosearch.png');
   }
 }

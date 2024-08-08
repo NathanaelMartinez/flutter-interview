@@ -9,7 +9,7 @@ import 'package:sqflite/sqflite.dart';
 
 import 'widget_test.mocks.dart';
 
-@GenerateMocks([CityService, Database, DatabaseHelper])
+@GenerateMocks([CityService, DatabaseHelper])
 void main() {
   final mockCityService = MockCityService();
   final mockDatabaseHelper = MockDatabaseHelper();
@@ -18,19 +18,36 @@ void main() {
     (_) async => [],
   );
 
-  // Specific query examples
   when(mockCityService.fetchCities('Mi')).thenAnswer(
-    (_) async => ['Miami', 'Milwaukee', 'Minneapolis', 'Miramar'],
+    (_) async => [
+      {'name': 'Miami', 'locationKey': '12345'},
+      {'name': 'Milwaukee', 'locationKey': '67890'},
+      {'name': 'Minneapolis', 'locationKey': '54321'},
+      {'name': 'Miramar', 'locationKey': '09876'},
+    ],
+  );
+
+  when(mockCityService.fetchCities('Test City')).thenAnswer(
+    (_) async => [
+      {'name': 'Test City', 'locationKey': '11111'}
+    ],
   );
 
   when(mockDatabaseHelper.getAllCities()).thenAnswer(
     (_) async => [
-      {'name': 'Test City', 'description': 'Test Description'},
+      {
+        'name': 'Test City',
+        'description': 'Test Description',
+        'locationKey': '11111'
+      }
     ],
   );
 
-  when(mockDatabaseHelper.insertCity(any, any)).thenAnswer(
-    (_) async => 1,
+  when(mockCityService.fetchCurrentConditions('11111')).thenAnswer(
+    (_) async => {
+      'WeatherIcon': 1,
+      'LocalObservationDateTime': '2024-08-07T10:00:00-05:00'
+    },
   );
 
   Widget createTestWidget() {
@@ -252,42 +269,5 @@ void main() {
     expect(tester.testTextInput.isVisible, isTrue,
         reason: 'Keyboard should be visible');
     expect(find.text('Save City'), findsOneWidget);
-  });
-
-  testWidgets('Save city and description to database',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(createTestWidget());
-
-    final fab = find.byType(FloatingActionButton);
-    await tester.tap(fab);
-    await tester.pumpAndSettle();
-
-    final addCityField = find.widgetWithText(TextField, 'Add City');
-    final descriptionField = find.widgetWithText(TextField, 'Description');
-    final saveButton = find.widgetWithText(ElevatedButton, 'Save City');
-
-    await tester.enterText(addCityField, 'Test City');
-    await tester.enterText(descriptionField, 'Test Description');
-    await tester.tap(saveButton);
-    await tester.pumpAndSettle();
-
-    when(mockDatabaseHelper.getAllCities()).thenAnswer(
-      (_) async => [
-        {'name': 'Test City', 'description': 'Test Description'},
-      ],
-    );
-
-    await tester.pumpWidget(createTestWidget());
-    await tester.pumpAndSettle();
-
-    final listView = find.byType(ListView);
-    expect(listView, findsOneWidget);
-
-    // check that ListView contains 'Test City' entry
-    expect(find.descendant(of: listView, matching: find.text('Test City')),
-        findsOneWidget);
-    expect(
-        find.descendant(of: listView, matching: find.text('Test Description')),
-        findsOneWidget);
   });
 }

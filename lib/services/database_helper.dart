@@ -22,17 +22,18 @@ class DatabaseHelper {
       version: 1,
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE cities(id INTEGER PRIMARY KEY, name TEXT, description TEXT)',
+          'CREATE TABLE cities(id INTEGER PRIMARY KEY, name TEXT, description TEXT, locationKey TEXT)',
         );
       },
     );
   }
 
-  Future<void> insertCity(String name, String description) async {
+  Future<void> insertCity(
+      String name, String description, String locationKey) async {
     final db = await database;
     await db.insert(
       'cities',
-      {'name': name, 'description': description},
+      {'name': name, 'description': description, 'locationKey': locationKey},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }

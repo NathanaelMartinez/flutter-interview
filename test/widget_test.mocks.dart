@@ -83,13 +83,27 @@ class MockCityService extends _i1.Mock implements _i4.CityService {
       ) as String);
 
   @override
-  _i3.Future<List<String>> fetchCities(String? query) => (super.noSuchMethod(
+  _i3.Future<List<Map<String, String>>> fetchCities(String? query) =>
+      (super.noSuchMethod(
         Invocation.method(
           #fetchCities,
           [query],
         ),
-        returnValue: _i3.Future<List<String>>.value(<String>[]),
-      ) as _i3.Future<List<String>>);
+        returnValue: _i3.Future<List<Map<String, String>>>.value(
+            <Map<String, String>>[]),
+      ) as _i3.Future<List<Map<String, String>>>);
+
+  @override
+  _i3.Future<Map<String, dynamic>> fetchCurrentConditions(
+          String? locationKey) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchCurrentConditions,
+          [locationKey],
+        ),
+        returnValue:
+            _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i3.Future<Map<String, dynamic>>);
 }
 
 /// A class which mocks [Database].
@@ -569,6 +583,7 @@ class MockDatabaseHelper extends _i1.Mock implements _i7.DatabaseHelper {
   _i3.Future<void> insertCity(
     String? name,
     String? description,
+    String? locationKey,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -576,6 +591,7 @@ class MockDatabaseHelper extends _i1.Mock implements _i7.DatabaseHelper {
           [
             name,
             description,
+            locationKey,
           ],
         ),
         returnValue: _i3.Future<void>.value(),
