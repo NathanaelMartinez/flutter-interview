@@ -307,13 +307,22 @@ class _MyAppState extends State<MyApp> {
     return Scaffold(
       appBar: AppBar(
         leading: const WeatherForemostIcon(),
-        title: const Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'WeatherForemost',
-            style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Transform.translate(
+              offset: const Offset(
+                  -22, 0), // Adjust this value to fine-tune the spacing
+              child: const Text(
+                'WeatherForemost',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
         ),
         centerTitle: false,
         backgroundColor: Colors.black,
@@ -482,7 +491,7 @@ class WeatherForemostIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('assets/icons/logo.png');
+    return Image.asset('assets/icons/logo.png', scale: 2);
   }
 }
 
