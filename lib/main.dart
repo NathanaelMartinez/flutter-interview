@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:interview_flutter/services/city_service.dart';
 import 'package:interview_flutter/services/database_helper.dart';
@@ -77,15 +78,20 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _loadCities() async {
     final cities = await widget.databaseHelper.getAllCities();
+    final List<Map<String, dynamic>> updatedCities = [];
+
     for (var city in cities) {
       final weatherData =
           await widget.cityService.fetchCurrentConditions(city['locationKey']);
-      city['weatherIcon'] = weatherData['WeatherIcon'];
-      city['localObservationDateTime'] =
+      final updatedCity = Map<String, dynamic>.from(city);
+      updatedCity['weatherIcon'] = weatherData['WeatherIcon'];
+      updatedCity['localObservationDateTime'] =
           weatherData['LocalObservationDateTime'];
+      updatedCities.add(updatedCity);
     }
+
     setState(() {
-      _cities = cities;
+      _cities = updatedCities;
     });
   }
 
@@ -350,6 +356,7 @@ class _MyAppState extends State<MyApp> {
                     .substring(11, 16);
 
                 return Card(
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(color: Colors.grey.shade300, width: 1),
@@ -384,9 +391,9 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ),
                       Container(
-                        width: 90,
+                        width: 92,
                         decoration: const BoxDecoration(
-                          color: Colors.blue,
+                          color: Color.fromARGB(255, 201, 229, 255),
                           borderRadius: BorderRadius.only(
                             topRight: Radius.circular(12),
                             bottomRight: Radius.circular(12),
@@ -395,12 +402,8 @@ class _MyAppState extends State<MyApp> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons
-                                  .wb_sunny, // You can replace this with appropriate weather icons
-                              color: Colors.orange,
-                              size: 40,
-                            ),
+                            Image.asset('assets/icons/sun.png',
+                                scale: 1.30), // TODO: implement weatherIcon
                             Text(
                               time,
                               style: const TextStyle(
@@ -488,6 +491,6 @@ class WeatherForemostIconNotFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('assets/icons/logosearch.png');
+    return Image.asset('assets/icons/logosearch.png', scale: 1.7);
   }
 }
